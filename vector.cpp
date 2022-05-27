@@ -19,13 +19,14 @@ public:
     Vector& operator= (Vector&&);
     T& operator[] (size_t);
     const T& operator[] (size_t)const;
-    
-    bool empty();
+    bool empty()const;
     size_t size_of();
     size_t capacity();
     void push_back(T);
     void pop_back();
     void resize(size_t);
+    void clear();
+    void shrink_to_fit();
     ~Vector();    
 };
 
@@ -99,7 +100,6 @@ Vector<T>::Vector(std::initializer_list<T> value_list): cap{1}, size{}
             buf[count] = *it;
         }   
     } 
-
 }
 
 template <typename T>
@@ -158,7 +158,7 @@ Vector<T>& Vector<T>::operator= (Vector<T>&& object)
 }
 
 template <typename T>
-bool Vector<T>::empty()
+bool Vector<T>::empty()const
 {
     bool test = false;
     if (!buf)
@@ -184,7 +184,7 @@ size_t Vector<T>::capacity()
 template <typename T>
 void Vector<T>::push_back(T element)
 {
-    if(!buf)
+    if(this->empty())
     {
         buf = new T[1];
     }
@@ -218,18 +218,52 @@ void Vector<T>::resize(size_t new_cap)
 {
     if (new_cap >= size)
     {
-        this->cap = new_cap;
-    }
-    else if(new_cap > 0)
-    {
         cap = new_cap;
-        size = new_cap;
+        if(this->empty())
+        {
+            buf = new T[cap];
+        }
+        else
+        {
+            T* tmp = new T[cap];
+            for (int i = 0; i < size; i++)
+            {
+                tmp[i] = buf[i];
+            }
+            delete [] buf;
+            buf = tmp;
+            tmp = nullptr;           
+        }    
     }    
 }
 
+template <typename T>
+void Vector<T>::clear()
+{
+    if(!buf)
+    {
+        size = 0;
+        cap = 1;
+        delete [] buf;
+    }
+}
 
-
-
-
-
-
+template <typename T>
+void Vector<T>::shrink_to_fit()
+{
+    if(this->empty())
+    {
+        if (cap != size)
+        {
+            cap = size;
+            T* tmp = new T[cap];
+            for (int i = 0; i < size; i++)
+            {
+                tmp[i] = buf[i];
+            }
+            delete [] buf;
+            buf = tmp;
+            tmp = nullptr;   
+        }   
+    }
+}
